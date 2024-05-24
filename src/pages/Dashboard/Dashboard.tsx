@@ -11,6 +11,7 @@ function Dashboard() {
 
   return (
     <>
+      <CreateTracker visible={visible} setVisible={setVisible} />
       <div className="wrapper">
         <div className="header_wrapper">
           <h2 className="date_header">
@@ -23,9 +24,6 @@ function Dashboard() {
           <button className="stop_btn">
             <i className="pi pi-stop-circle"></i>Stop all
           </button>
-        </div>
-        <div>
-          <CreateTracker visible={visible} setVisible={setVisible} />
         </div>
       </div>
     </>

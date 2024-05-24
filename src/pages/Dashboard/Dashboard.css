@@ -1,0 +1,66 @@
+.wrapper {
+  padding: 70px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+i {
+  margin-right: 5px;
+}
+
+.header_wrapper {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  height: 170px;
+  width: 1170px;
+  position: relative;
+}
+
+.date_header {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.start_btn {
+  color: white;
+  width: 166px;
+  height: 36px;
+  border-radius: 3px;
+  border: 1px solid var(--orange, #ff5722);
+  background: var(--orange, #ff5722);
+  margin-top: 100px;
+}
+
+.start_btn:hover,
+.stop_btn:hover {
+  cursor: pointer;
+  opacity: 0.88;
+}
+
+.stop_btn {
+  margin-top: 100px;
+  margin-left: 10px;
+  color: white;
+  width: 113px;
+  height: 36px;
+  flex-shrink: 0;
+  border-radius: 3px;
+  border: 1px solid var(--port-gore, #181846);
+  background: var(
+    --port-gore,
+    linear-gradient(0deg, #181846 0%, #181846 100%) lightgray 50% / cover
+      no-repeat
+  );
+}
+
+.date_header {
+  font-family: Nunito Sans;
+  font-size: 18px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 17px;
+}
