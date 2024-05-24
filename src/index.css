@@ -1,0 +1,27 @@
+@import url("https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@200;300;400;500;700&display=swap");
+@import "primeicons/primeicons.css";
+
+body {
+  margin: 0;
+  display: flex;
+  place-items: center;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+h1 {
+  font-size: 3.2em;
+  line-height: 1.1;
+}
+
+:root {
+  --max-width: 1100px;
+  --orange: #ff5722;
+  --whisper: #ecedf5;
+  --white-lilac: #f9f9fd;
+  --port-gore: #181846;
+  --blaze-orange: #ff6d00;
+  --white: #fff;
+  --ghost: #c4c5d7;
+  --lynch: #5f6b8a;
+}

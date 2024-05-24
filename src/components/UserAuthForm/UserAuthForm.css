@@ -1,0 +1,92 @@
+.login_wrapper {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 80vh;
+}
+
+.login_card {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 400px;
+  height: 370px;
+  border-radius: 8px;
+  border: 0.5px solid var(--whisper, #ecedf5);
+  background: var(--white-lilac, #f9f9fd);
+  margin-bottom: 30px;
+}
+
+.login_card input {
+  width: 330px;
+  height: 42px;
+  border-radius: 3px;
+  border: none;
+  margin-bottom: 30px;
+  padding-left: 15px;
+}
+
+.login_btn {
+  width: 330px;
+  height: 36px;
+  border-radius: 3px;
+  border: 1px solid var(--orange, #ff5722);
+  background: var(--orange, #ff5722);
+  color: white;
+}
+
+.login_btn:hover {
+  cursor: pointer;
+}
+
+.register_card {
+  width: 400px;
+  height: 92px;
+  border-radius: 8px;
+  border: 0.5px solid var(--whisper, #ecedf5);
+  background: var(--white-lilac, #f9f9fd);
+  display: flex;
+  flex-direction: row;
+}
+
+.register_text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  margin-left: 45px;
+}
+
+.register_card p:nth-of-type(2) {
+  color: var(--orange, #5f6b8a);
+  font-family: Nunito Sans;
+  font-size: 13px;
+  font-style: normal;
+  font-weight: 300;
+  text-decoration: underline;
+  margin: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+.register_card p:first-of-type {
+  color: var(--lynch, #5f6b8a);
+  font-family: Nunito Sans;
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 400;
+  margin: 0;
+  padding: 0;
+}
+
+.back_btn {
+  width: 330px;
+  height: 36px;
+  border-radius: 3px;
+  border: 1px solid var(--port-gore);
+  background: var(--port-gore);
+  color: white;
+  cursor: pointer;
+}
