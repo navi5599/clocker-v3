@@ -5,32 +5,43 @@ import Dashboard from "./pages/Dashboard/Dashboard";
 import HistoryPage from "./pages/History/HistoryPage";
 import LoginPage from "./pages/Login/LoginPage";
 import RegisterPage from "./pages/Register/RegisterPage";
+import ProtectedRoute from "./components/ProtectedRoute/ProtectedRoute";
+import { useSelector } from "react-redux";
+import { selectUser } from "./store/slices/authSlice";
+import NotFound from "./components/NotFound/NotFound";
 
 function App() {
-  const user = {
-    name: "John",
-    id: 1,
-  };
+  const user = useSelector(selectUser);
 
   return (
     <BrowserRouter>
       <Header />
       <Routes>
         <Route
-          path="/"
-          element={!user ? <Navigate to="/login" /> : <Dashboard />}
-        />
-        <Route
-          path="/history"
-          element={!user ? <Navigate to="/login" /> : <HistoryPage />}
-        />
-        <Route
           path="/login"
-          element={user ? <Navigate to="/" /> : <LoginPage />}
+          element={!user ? <LoginPage /> : <Navigate to="/" />}
         />
         <Route
           path="/register"
-          element={user ? <Navigate to="/" /> : <RegisterPage />}
+          element={!user ? <RegisterPage /> : <Navigate to="/" />}
+        />
+        {/* <Route path="*" element={<Navigate to="/" />} /> */}
+        <Route path="*" element={<NotFound />} />
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/history"
+          element={
+            <ProtectedRoute>
+              <HistoryPage />
+            </ProtectedRoute>
+          }
         />
       </Routes>
     </BrowserRouter>

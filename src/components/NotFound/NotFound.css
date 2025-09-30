@@ -1,0 +1,12 @@
+.not-found-button {
+  width: 130px;
+  height: 36px;
+  border-radius: 3px;
+  border: 1px solid var(--orange, #ff5722);
+  background: var(--orange, #ff5722);
+  color: white;
+}
+
+.not-found-button:hover {
+  cursor: pointer;
+}

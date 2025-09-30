@@ -1,12 +1,15 @@
+import { useState } from "react";
 import "./UserAuthForm.css";
 
 interface UserAuthFormProps {
   cardHeader: string;
   buttonHeader: string;
-  handleLoginAndRegister: () => void;
+  handleLoginAndRegister: (email: string, password: string) => void;
   name: string;
   type: string;
   handleRoute: () => void;
+  isLoading?: boolean;
+  error?: string | null;
 }
 
 function UserAuthForm(props: UserAuthFormProps) {
@@ -17,33 +20,42 @@ function UserAuthForm(props: UserAuthFormProps) {
     name,
     type,
     handleRoute,
+    isLoading = false,
+    error = null,
   } = props;
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    handleLoginAndRegister(email, password);
+  };
 
   return (
     <div className="login_wrapper">
-      <div className="login_card">
+      <div>
         <h2>{cardHeader}</h2>
-        {userStore.errorMsg && (
-          <input type="text" placeholder={userStore.errorMsg}></input>
-        )}
-        <input
-          onChange={(e) => (userStore.email = e.target.value)}
-          type="text"
-          placeholder="Email"
-        ></input>
-        <input
-          onChange={(e) => (userStore.password = e.target.value)}
-          type="password"
-          placeholder="Password"
-        ></input>
-        <button
-          onClick={() =>
-            handleLoginAndRegister(userStore.email, userStore.password)
-          }
-          className="login_btn"
-        >
-          {buttonHeader}
-        </button>
+        <form onSubmit={handleSubmit} className="login_card">
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Email"
+            required
+          ></input>
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Password"
+            required
+          ></input>
+          <button type="submit" className="login_btn" disabled={isLoading}>
+            {isLoading ? "Processing" : buttonHeader}
+          </button>
+          {error && <p style={{ color: "red" }}>{error}</p>}
+        </form>
       </div>
 
       <div className="register_card">

@@ -12,6 +12,7 @@ function HistoryPage() {
           <i className="pi pi-calendar"></i>
           {`Today(${formattedDate})`}
         </h2>
+        <h1>Nothing to be displayed ..</h1>
       </div>
     </div>
   );

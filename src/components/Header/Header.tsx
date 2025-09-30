@@ -1,10 +1,22 @@
 import "./Header.css";
 import { Link } from "react-router-dom";
 
-const user = true;
-const logOut = () => console.log("logout");
+import { useSelector } from "react-redux";
+import { selectUser } from "../../store/slices/authSlice";
+import { useLogoutMutation } from "../../store/api/authApi";
 
 function Header() {
+  const user = useSelector(selectUser);
+  const [logout] = useLogoutMutation();
+
+  const handleLogout = async () => {
+    try {
+      await logout({}).unwrap();
+    } catch (err) {
+      console.error("Logout failed:", err);
+    }
+  };
+
   return (
     <div className="header">
       <div className="devot_logo">
@@ -30,7 +42,7 @@ function Header() {
             </div>
           </Link>
           <Link to="/login">
-            <div onClick={logOut} className="link">
+            <div onClick={handleLogout} className="link">
               <i className="pi pi-power-off"></i>
               Logout
             </div>
