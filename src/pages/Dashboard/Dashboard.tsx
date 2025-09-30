@@ -13,16 +13,6 @@ function Dashboard() {
   // console.log("error", error);
   // console.log("isLoading", isLoading);
 
-  const showSuccess = () => {
-    setVisible(true);
-    toast.current.show({
-      severity: "success",
-      summary: "Registered",
-      detail: "fk you",
-      life: 3000,
-    });
-  };
-
   const showError = (msg: string) => {
     toast.current.show({
       severity: "error",
@@ -45,8 +35,8 @@ function Dashboard() {
             <i className="pi pi-calendar"></i>
             {`Today(${formattedDate})`}
           </h2>
-          <button className="start_btn" onClick={showSuccess}>
-            <i className="pi pi-stopwatch"></i>Add new timer
+          <button className="start_btn" onClick={() => setVisible(true)}>
+            <i className="pi pi-stopwatch"></i>Add tracker
           </button>
           <button className="stop_btn">
             <i className="pi pi-stop-circle"></i>Stop all

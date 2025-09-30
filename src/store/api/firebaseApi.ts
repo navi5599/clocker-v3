@@ -37,7 +37,38 @@ export const firebaseApi = createApi({
       },
       providesTags: ["Trackers"],
     }),
+    createTracker: builder.mutation({
+      queryFn: async ({
+        title,
+        description,
+        duration,
+        startedAt,
+        finishedAt,
+        createdAt,
+      }) => {
+        try {
+          const trackerRef = doc(collection(db, "trackers"));
+          await setDoc(trackerRef, {
+            title,
+            description,
+            duration,
+            startedAt,
+            finishedAt,
+            createdAt,
+            id: trackerRef.id,
+          });
+          return { data: { id: trackerRef.id } };
+        } catch (error) {
+          const errorMessage =
+            typeof error === "object" && error !== null && "message" in error
+              ? (error as { message?: string }).message
+              : String(error);
+          return { error: { status: "CUSTOM_ERROR", error: errorMessage } };
+        }
+      },
+      invalidatesTags: ["Trackers"],
+    }),
   }),
 });
 
-export const { useGetTrackersQuery } = firebaseApi;
+export const { useGetTrackersQuery, useCreateTrackerMutation } = firebaseApi;
