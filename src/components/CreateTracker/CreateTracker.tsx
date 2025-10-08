@@ -9,10 +9,11 @@ import { Timestamp } from "firebase/firestore";
 interface CreateTrackerProps {
   visible: boolean;
   setVisible: (type: boolean) => void;
+  toastRef?: any;
 }
 
 function CreateTracker(props: CreateTrackerProps) {
-  const { visible, setVisible } = props;
+  const { visible, setVisible, toastRef } = props;
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -24,6 +25,15 @@ function CreateTracker(props: CreateTrackerProps) {
     setDescription("");
   };
 
+  const showSucess = (msg: string) => {
+    toastRef.current.show({
+      severity: "success",
+      summary: msg,
+      detail: "Success",
+      life: 3000,
+    });
+  };
+
   const handleSubmit = async (e: any) => {
     e.preventDefault();
     try {
@@ -32,12 +42,13 @@ function CreateTracker(props: CreateTrackerProps) {
         title,
         description,
         duration: 0,
-        startedAt: now,
+        startedAt: null,
         finishedAt: null,
         createdAt: now,
       }).unwrap();
       setTitle("");
       setDescription("");
+      showSucess("Tracker created");
       setVisible(false);
     } catch (err) {
       console.error("Failed to create tracker:", err);
@@ -47,7 +58,7 @@ function CreateTracker(props: CreateTrackerProps) {
   return (
     <div>
       <Dialog
-        header="Add new tracker"
+        header="Create new tracker"
         visible={visible}
         style={{ width: "20vw", height: "25vW" }}
         onHide={() => setVisible(false)}

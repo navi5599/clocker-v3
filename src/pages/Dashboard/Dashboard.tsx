@@ -3,31 +3,21 @@ import "./Dashboard.css";
 import { useRef, useState } from "react";
 import CreateTracker from "../../components/CreateTracker/CreateTracker";
 import { Toast } from "primereact/toast";
-// import { useGetTrackersQuery } from "../../store/api/firebaseApi";
 
 function Dashboard() {
   const [visible, setVisible] = useState(false);
   const toast: any = useRef(null);
-  // const { data: trackers, error, isLoading } = useGetTrackersQuery({});
-  // console.log("trackers", trackers);
-  // console.log("error", error);
-  // console.log("isLoading", isLoading);
-
-  const showError = (msg: string) => {
-    toast.current.show({
-      severity: "error",
-      summary: msg,
-      detail: "message",
-      life: 3000,
-    });
-  };
 
   const date = new Date();
   const formattedDate = moment(date).format("MM/DD/YY");
 
   return (
     <>
-      <CreateTracker visible={visible} setVisible={setVisible} />
+      <CreateTracker
+        visible={visible}
+        setVisible={setVisible}
+        toastRef={toast}
+      />
       <Toast ref={toast} />
       <div className="wrapper">
         <div className="header_wrapper">

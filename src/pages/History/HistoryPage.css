@@ -1,0 +1,49 @@
+.history-wrapper {
+  padding: 70px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.history-header {
+  width: 1170px;
+  margin-bottom: 75px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.history-date {
+  display: flex;
+  align-items: center;
+  font-family: Nunito Sans;
+  font-size: 18px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 17px;
+  margin: 0;
+}
+
+.history-date i {
+  margin-right: 5px;
+}
+
+.history-title {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.history-table {
+  width: 1170px;
+  margin-top: 20px;
+}
+
+.history-table-state {
+  padding: 40px;
+  text-align: center;
+  border: 1px dashed #e0e0e0;
+  border-radius: 6px;
+  color: #5c5c5c;
+}

@@ -1,0 +1,30 @@
+.single_tracker {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  max-height: 35px;
+  padding-left: 50px;
+  padding-right: 70px;
+}
+
+.tracker_info {
+  width: 100%;
+  justify-content: flex-start;
+  display: flex;
+  flex-direction: row;
+}
+
+.tracker_actions {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+h4 {
+  margin-left: 20px;
+}
+
+.tracker_actions h4 {
+  margin-right: 50px;
+}
