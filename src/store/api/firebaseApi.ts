@@ -2,6 +2,7 @@
 import { createApi, fakeBaseQuery } from "@reduxjs/toolkit/query/react";
 import {
   collection,
+  deleteDoc,
   doc,
   getDocs,
   setDoc,
@@ -68,7 +69,27 @@ export const firebaseApi = createApi({
       },
       invalidatesTags: ["Trackers"],
     }),
+    deleteTracker: builder.mutation({
+      queryFn: async ({ id }: { id: string }) => {
+        try {
+          const trackerRef = doc(collection(db, "trackers"), id);
+          await deleteDoc(trackerRef);
+          return { data: { id } };
+        } catch (error) {
+          const errorMessage =
+            typeof error === "object" && error !== null && "message" in error
+              ? (error as { message?: string }).message
+              : String(error);
+          return { error: { status: "CUSTOM_ERROR", error: errorMessage } };
+        }
+      },
+      invalidatesTags: ["Trackers"],
+    }),
   }),
 });
 
-export const { useGetTrackersQuery, useCreateTrackerMutation } = firebaseApi;
+export const {
+  useGetTrackersQuery,
+  useCreateTrackerMutation,
+  useDeleteTrackerMutation,
+} = firebaseApi;

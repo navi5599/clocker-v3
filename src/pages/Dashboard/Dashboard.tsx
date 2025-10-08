@@ -5,7 +5,10 @@ import CreateTracker from "../../components/CreateTracker/CreateTracker";
 import { Toast } from "primereact/toast";
 import { useSelector } from "react-redux";
 import { selectUser } from "../../store/slices/authSlice";
-import { useGetTrackersQuery } from "../../store/api/firebaseApi";
+import {
+  useDeleteTrackerMutation,
+  useGetTrackersQuery,
+} from "../../store/api/firebaseApi";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { Tooltip } from "primereact/tooltip";
@@ -21,6 +24,7 @@ function Dashboard() {
     isLoading: isTrackersLoading,
     error: trackersError,
   } = useGetTrackersQuery({ skip: !user });
+  const [deleteTracker, { isLoading: isDeleting }] = useDeleteTrackerMutation();
 
   type TrackerRow = Omit<Tracker, "startedAt" | "finishedAt" | "createdAt"> & {
     id: string;
@@ -53,7 +57,26 @@ function Dashboard() {
     return parts.join(" ") || "0s";
   };
 
-  const actionsTemplate = (_rowData: TrackerRow) => (
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteTracker({ id }).unwrap();
+      toast.current?.show({
+        severity: "success",
+        summary: "Sucesfully deleted",
+        detail: "Tracker removed",
+        life: 3000,
+      });
+    } catch (_error) {
+      toast.current?.show({
+        severity: "error",
+        summary: "Delete failed",
+        detail: "Please try again",
+        life: 3000,
+      });
+    }
+  };
+
+  const actionsTemplate = (rowData: TrackerRow) => (
     <div className="tracker-actions">
       <button
         type="button"
@@ -76,6 +99,15 @@ function Dashboard() {
       >
         <i className="pi pi-stop" />
       </button>
+      <button
+        type="button"
+        className="tracker-action-btn tracker-action-btn--delete"
+        aria-label="Delete"
+        onClick={() => handleDelete(rowData.id)}
+        disabled={isDeleting}
+      >
+        <i className="pi pi-trash" />
+      </button>
     </div>
   );
 
@@ -97,6 +129,11 @@ function Dashboard() {
       <Tooltip
         target=".tracker-action-btn--stop"
         content="Stop tracker"
+        position="top"
+      />
+      <Tooltip
+        target=".tracker-action-btn--delete"
+        content="Delete tracker"
         position="top"
       />
       <CreateTracker
