@@ -34,27 +34,23 @@ function HistoryPage() {
       return "-";
     }
 
-    const dateValue = typeof value.toDate === "function" ? value.toDate() : value;
+    const dateValue =
+      typeof value.toDate === "function" ? value.toDate() : value;
     return moment(dateValue).format("MMM DD, YYYY HH:mm");
   };
 
   const durationTemplate = (rowData: Tracker) => {
-    const duration = rowData.duration ?? 0;
-    if (!duration) {
-      return "0s";
-    }
-
-    const totalSeconds = Math.floor(duration);
+    const totalSeconds = rowData.duration;
     const hours = Math.floor(totalSeconds / 3600);
     const minutes = Math.floor((totalSeconds % 3600) / 60);
     const seconds = totalSeconds % 60;
 
-    const parts: string[] = [];
-    if (hours) parts.push(`${hours}h`);
-    if (minutes) parts.push(`${minutes}m`);
-    if (seconds) parts.push(`${seconds}s`);
+    const parts = [];
+    if (hours > 0) parts.push(`${hours}h`);
+    if (minutes > 0) parts.push(`${minutes}m`);
+    if (seconds > 0 || parts.length === 0) parts.push(`${seconds}s`);
 
-    return parts.join(" ") || "0s";
+    return parts.join(" ");
   };
 
   const date = new Date();
@@ -95,7 +91,9 @@ function HistoryPage() {
             />
             <Column
               header="Finished"
-              body={(rowData: TrackerRow) => formatTimestamp(rowData.finishedAt)}
+              body={(rowData: TrackerRow) =>
+                formatTimestamp(rowData.finishedAt)
+              }
               sortable
             />
             <Column

@@ -19,6 +19,69 @@ i {
   position: relative;
 }
 
+.dashboard-table {
+  width: 1170px;
+  margin-top: 20px;
+}
+
+.dashboard-table-state {
+  padding: 40px;
+  text-align: center;
+  border: 1px dashed #e0e0e0;
+  border-radius: 6px;
+  color: #5c5c5c;
+}
+
+.tracker-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.tracker-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid #d1d5db;
+  border-radius: 50%;
+  background: #fff;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.tracker-action-btn:hover {
+  background: #f5f5f5;
+}
+
+.tracker-action-btn i {
+  margin: 0;
+}
+
+.tracker-action-btn--play:hover {
+  background: #e3f6ea;
+  border-color: #9fd9af;
+  color: #2f855a;
+}
+
+.tracker-action-btn--pause:hover {
+  background: #fff7da;
+  border-color: #f3d675;
+  color: #a7791a;
+}
+
+.tracker-action-btn--stop:hover {
+  background: #fde7e6;
+  border-color: #f5a3a1;
+  color: #c53030;
+}
+
+.tracker-actions-cell {
+  text-align: right;
+}
+
 .date_header {
   position: absolute;
   top: 0;
