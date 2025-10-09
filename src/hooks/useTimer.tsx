@@ -1,50 +1,50 @@
-import { useState, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 
-export const useTimer = () => {
-  const [startTime, setStartTime] = useState<number>(0);
-  const [timePassed, setTimePassed] = useState(0);
+export const useTimer = (initialSeconds = 0) => {
+  const [timePassed, setTimePassed] = useState(initialSeconds);
   const [isRunning, setIsRunning] = useState(false);
 
   useEffect(() => {
-    let timer: any;
-
-    if (isRunning) {
-      timer = setInterval(() => {
-        setTimePassed((prevTimePassed) => prevTimePassed + 1);
-      }, 1000);
+    if (!isRunning) {
+      setTimePassed(initialSeconds);
     }
+  }, [initialSeconds, isRunning]);
+
+  useEffect(() => {
+    if (!isRunning) {
+      return;
+    }
+
+    const timer = setInterval(() => {
+      setTimePassed((prevTimePassed) => prevTimePassed + 1);
+    }, 1000);
 
     return () => clearInterval(timer);
   }, [isRunning]);
 
-  const startTimer = () => {
-    if (!isRunning) {
-      const currentTime = Math.floor(Date.now() / 1000);
-      setStartTime(currentTime - timePassed);
-      setIsRunning(true);
-    }
-  };
+  const startTimer = useCallback(() => {
+    setIsRunning((running) => {
+      if (running) {
+        return running;
+      }
+      return true;
+    });
+  }, []);
 
-  const stopTimer = () => {
-    if (isRunning) {
-      setIsRunning(false);
-    }
-  };
+  const stopTimer = useCallback(() => {
+    setIsRunning(false);
+  }, []);
 
-  const resetTimer = () => {
-    setTimePassed(0);
-  };
-
-  const getTimePassed = () => {
-    return timePassed;
-  };
+  const resetTimer = useCallback((value = 0) => {
+    setTimePassed(value);
+    setIsRunning(false);
+  }, []);
 
   return {
-    startTime,
+    timePassed,
     startTimer,
     stopTimer,
     resetTimer,
-    getTimePassed,
     isRunning,
   };
 };

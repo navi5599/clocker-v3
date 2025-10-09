@@ -1,6 +1,6 @@
 import moment from "moment";
 import "./Dashboard.css";
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState, useCallback, useEffect } from "react";
 import CreateTracker from "../../components/CreateTracker/CreateTracker";
 import { Toast } from "primereact/toast";
 import { useSelector } from "react-redux";
@@ -14,6 +14,20 @@ import { Column } from "primereact/column";
 import { Tooltip } from "primereact/tooltip";
 import { Tracker } from "../../utils/types/Tracker";
 import { Timestamp } from "firebase/firestore";
+import { useTimer } from "../../hooks/useTimer";
+
+type TrackerRow = Omit<Tracker, "startedAt" | "finishedAt" | "createdAt"> & {
+  id: string;
+  startedAt?: Timestamp | null;
+  finishedAt?: Timestamp | null;
+  createdAt?: Timestamp | null;
+};
+
+type TimerControls = {
+  start: () => void;
+  pause: () => void;
+  stop: () => void;
+};
 
 function Dashboard() {
   const [visible, setVisible] = useState(false);
@@ -25,41 +39,55 @@ function Dashboard() {
     error: trackersError,
   } = useGetTrackersQuery({ skip: !user });
   const [deleteTracker, { isLoading: isDeleting }] = useDeleteTrackerMutation();
+  const timerRegistry = useRef<Record<string, TimerControls>>({});
 
-  type TrackerRow = Omit<Tracker, "startedAt" | "finishedAt" | "createdAt"> & {
-    id: string;
-    startedAt?: Timestamp | null;
-    finishedAt?: Timestamp | null;
-    createdAt?: Timestamp | null;
-  };
+  const registerTimer = useCallback((id: string, controls: TimerControls) => {
+    timerRegistry.current[id] = controls;
+  }, []);
+
+  const unregisterTimer = useCallback((id: string) => {
+    delete timerRegistry.current[id];
+  }, []);
+
+  const startTrackerTimer = useCallback((id: string) => {
+    timerRegistry.current[id]?.start();
+  }, []);
+
+  const pauseTrackerTimer = useCallback((id: string) => {
+    timerRegistry.current[id]?.pause();
+  }, []);
+
+  const stopTrackerTimer = useCallback((id: string) => {
+    timerRegistry.current[id]?.stop();
+  }, []);
+
+  const stopAllTrackers = useCallback(() => {
+    Object.values(timerRegistry.current).forEach((controls) => {
+      controls.stop();
+    });
+  }, []);
 
   const activeTrackers = useMemo(() => {
     const typedTrackers = (trackers ?? []) as TrackerRow[];
     return typedTrackers.filter((tracker) => !tracker.finishedAt);
   }, [trackers]);
 
-  const durationTemplate = (rowData: TrackerRow) => {
-    const duration = rowData.duration ?? 0;
-    if (!duration) {
-      return "0s";
-    }
-
-    const totalSeconds = Math.floor(duration);
-    const hours = Math.floor(totalSeconds / 3600);
-    const minutes = Math.floor((totalSeconds % 3600) / 60);
-    const seconds = totalSeconds % 60;
-
-    const parts: string[] = [];
-    if (hours) parts.push(`${hours}h`);
-    if (minutes) parts.push(`${minutes}m`);
-    if (seconds) parts.push(`${seconds}s`);
-
-    return parts.join(" ") || "0s";
-  };
+  const durationTemplate = useCallback(
+    (rowData: TrackerRow) => (
+      <TrackerDurationCell
+        tracker={rowData}
+        registerTimer={registerTimer}
+        unregisterTimer={unregisterTimer}
+      />
+    ),
+    [registerTimer, unregisterTimer]
+  );
 
   const handleDelete = async (id: string) => {
     try {
       await deleteTracker({ id }).unwrap();
+      stopTrackerTimer(id);
+      unregisterTimer(id);
       toast.current?.show({
         severity: "success",
         summary: "Sucesfully deleted",
@@ -82,6 +110,8 @@ function Dashboard() {
         type="button"
         className="tracker-action-btn tracker-action-btn--play"
         aria-label="Play"
+        onClick={() => startTrackerTimer(rowData.id)}
+        disabled={isDeleting}
       >
         <i className="pi pi-play" />
       </button>
@@ -89,6 +119,8 @@ function Dashboard() {
         type="button"
         className="tracker-action-btn tracker-action-btn--pause"
         aria-label="Pause"
+        onClick={() => pauseTrackerTimer(rowData.id)}
+        disabled={isDeleting}
       >
         <i className="pi pi-pause" />
       </button>
@@ -96,6 +128,8 @@ function Dashboard() {
         type="button"
         className="tracker-action-btn tracker-action-btn--stop"
         aria-label="Stop"
+        onClick={() => stopTrackerTimer(rowData.id)}
+        disabled={isDeleting}
       >
         <i className="pi pi-stop" />
       </button>
@@ -151,7 +185,7 @@ function Dashboard() {
           <button className="start_btn" onClick={() => setVisible(true)}>
             <i className="pi pi-stopwatch"></i>Add tracker
           </button>
-          <button className="stop_btn">
+          <button className="stop_btn" onClick={stopAllTrackers}>
             <i className="pi pi-stop-circle"></i>Stop all
           </button>
         </div>
@@ -166,7 +200,7 @@ function Dashboard() {
               dataKey="id"
               loading={isTrackersLoading}
               paginator
-              rows={5}
+              rows={10}
               emptyMessage="No active trackers yet."
               responsiveLayout="stack"
             >
@@ -174,7 +208,9 @@ function Dashboard() {
               <Column field="description" header="Description" />
               <Column
                 header="Duration"
-                body={(rowData: TrackerRow) => durationTemplate(rowData)}
+                body={durationTemplate}
+                bodyClassName="tracker-duration-cell"
+                headerClassName="tracker-duration-cell"
               />
               <Column
                 header=""
@@ -188,6 +224,54 @@ function Dashboard() {
       </div>
     </>
   );
+}
+
+function TrackerDurationCell({
+  tracker,
+  registerTimer,
+  unregisterTimer,
+}: {
+  tracker: TrackerRow;
+  registerTimer: (id: string, controls: TimerControls) => void;
+  unregisterTimer: (id: string) => void;
+}) {
+  const { timePassed, startTimer, stopTimer, resetTimer } = useTimer(
+    tracker.duration ?? 0
+  );
+
+  const controls = useMemo(
+    () => ({
+      start: startTimer,
+      pause: stopTimer,
+      stop: () => resetTimer(0),
+    }),
+    [startTimer, stopTimer, resetTimer]
+  );
+
+  useEffect(() => {
+    registerTimer(tracker.id, controls);
+
+    return () => {
+      unregisterTimer(tracker.id);
+    };
+  }, [tracker.id, controls, registerTimer, unregisterTimer]);
+
+  return (
+    <span className="tracker-duration">{formatDuration(timePassed)}</span>
+  );
+}
+
+function formatDuration(seconds: number) {
+  const totalSeconds = Math.max(0, Math.floor(seconds));
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const secs = totalSeconds % 60;
+
+  const segments = [hours, minutes, secs].map((value) =>
+    String(value).padStart(2, "0")
+  );
+
+  return segments.join(":");
 }
 
 export default Dashboard;
