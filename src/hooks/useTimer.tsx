@@ -5,10 +5,8 @@ export const useTimer = (initialSeconds = 0) => {
   const [isRunning, setIsRunning] = useState(false);
 
   useEffect(() => {
-    if (!isRunning) {
-      setTimePassed(initialSeconds);
-    }
-  }, [initialSeconds, isRunning]);
+    setTimePassed(initialSeconds);
+  }, [initialSeconds]);
 
   useEffect(() => {
     if (!isRunning) {

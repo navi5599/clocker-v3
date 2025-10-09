@@ -235,7 +235,7 @@ function TrackerDurationCell({
   registerTimer: (id: string, controls: TimerControls) => void;
   unregisterTimer: (id: string) => void;
 }) {
-  const { timePassed, startTimer, stopTimer, resetTimer } = useTimer(
+  const { timePassed, startTimer, stopTimer } = useTimer(
     tracker.duration ?? 0
   );
 
@@ -243,9 +243,9 @@ function TrackerDurationCell({
     () => ({
       start: startTimer,
       pause: stopTimer,
-      stop: () => resetTimer(0),
+      stop: stopTimer,
     }),
-    [startTimer, stopTimer, resetTimer]
+    [startTimer, stopTimer]
   );
 
   useEffect(() => {
