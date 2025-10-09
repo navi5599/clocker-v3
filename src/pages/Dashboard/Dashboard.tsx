@@ -166,7 +166,7 @@ function Dashboard() {
               dataKey="id"
               loading={isTrackersLoading}
               paginator
-              rows={10}
+              rows={5}
               emptyMessage="No active trackers yet."
               responsiveLayout="stack"
             >

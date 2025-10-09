@@ -10,3 +10,8 @@
 .p-float-label {
   margin-top: 45px;
 }
+
+.input-error {
+  border-color: #fb654e !important;
+  box-shadow: 0 0 0 3px rgba(243, 181, 171, 0.5) !important;
+}

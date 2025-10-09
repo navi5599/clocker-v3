@@ -18,15 +18,20 @@ function CreateTracker(props: CreateTrackerProps) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [createTracker, { isLoading }] = useCreateTrackerMutation();
+  const [errors, setErrors] = useState<{
+    title?: boolean;
+    description?: boolean;
+  }>({});
 
   const handleModalCLose = () => {
     setVisible(false);
     setTitle("");
     setDescription("");
+    setErrors({});
   };
 
   const showSucess = (msg: string) => {
-    toastRef.current.show({
+    toastRef?.current?.show({
       severity: "success",
       summary: msg,
       detail: "Success",
@@ -34,8 +39,34 @@ function CreateTracker(props: CreateTrackerProps) {
     });
   };
 
+  const showError = (msg: string) => {
+    toastRef?.current?.show({
+      severity: "error",
+      summary: msg,
+      detail: "Error",
+      life: 3000,
+    });
+  };
+
   const handleSubmit = async (e: any) => {
     e.preventDefault();
+    const nextErrors: { title?: boolean; description?: boolean } = {};
+
+    if (!title.trim()) {
+      nextErrors.title = true;
+      showError("Title is required");
+    }
+
+    if (!description.trim()) {
+      nextErrors.description = true;
+      showError("Description is required");
+    }
+
+    if (Object.keys(nextErrors).length) {
+      setErrors(nextErrors);
+      return;
+    }
+
     try {
       const now = Timestamp.now();
       await createTracker({
@@ -48,6 +79,7 @@ function CreateTracker(props: CreateTrackerProps) {
       }).unwrap();
       setTitle("");
       setDescription("");
+      setErrors({});
       showSucess("Tracker created");
       setVisible(false);
     } catch (err) {
@@ -61,14 +93,22 @@ function CreateTracker(props: CreateTrackerProps) {
         header="Create new tracker"
         visible={visible}
         style={{ width: "20vw", height: "25vW" }}
-        onHide={() => setVisible(false)}
+        onHide={handleModalCLose}
       >
         <FloatLabel>
           <InputText
             id="title"
             value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className="create_tracker_input"
+            onChange={(e) => {
+              setTitle(e.target.value);
+              if (errors.title && e.target.value.trim()) {
+                setErrors((prev) => ({ ...prev, title: undefined }));
+              }
+            }}
+            className={`create_tracker_input ${
+              errors.title ? "input-error" : ""
+            }`}
+            aria-invalid={Boolean(errors.title)}
           />
           <label htmlFor="title">Title</label>
         </FloatLabel>
@@ -76,10 +116,18 @@ function CreateTracker(props: CreateTrackerProps) {
           <InputText
             id="description"
             value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            className="create_tracker_input"
+            onChange={(e) => {
+              setDescription(e.target.value);
+              if (errors.description && e.target.value.trim()) {
+                setErrors((prev) => ({ ...prev, description: undefined }));
+              }
+            }}
+            className={`create_tracker_input ${
+              errors.description ? "input-error" : ""
+            }`}
+            aria-invalid={Boolean(errors.description)}
           />
-          <label htmlFor="title">Description</label>
+          <label htmlFor="description">Description</label>
         </FloatLabel>
         <button
           className="start_btn modal_btn"
