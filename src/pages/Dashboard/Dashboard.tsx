@@ -28,6 +28,7 @@ type TimerControls = {
   start: () => void;
   pause: () => void;
   stop: () => void;
+  getElapsed: () => number;
 };
 
 function Dashboard() {
@@ -41,6 +42,7 @@ function Dashboard() {
   } = useGetTrackersQuery({ skip: !user });
   const [deleteTracker, { isLoading: isDeleting }] = useDeleteTrackerMutation();
   const [updateTracker] = useUpdateTrackerMutation();
+  const [elapsedTimes, setElapsedTimes] = useState<Record<string, number>>({});
   const timerRegistry = useRef<Record<string, TimerControls>>({});
   const startTimesRef = useRef<Record<string, Timestamp | null>>({});
 
@@ -48,9 +50,28 @@ function Dashboard() {
     timerRegistry.current[id] = controls;
   }, []);
 
-  const unregisterTimer = useCallback((id: string) => {
-    delete timerRegistry.current[id];
-    delete startTimesRef.current[id];
+  const unregisterTimer = useCallback(
+    (id: string) => {
+      delete timerRegistry.current[id];
+      delete startTimesRef.current[id];
+      setElapsedTimes((prev) => {
+        if (!(id in prev)) {
+          return prev;
+        }
+        const { [id]: _removed, ...rest } = prev;
+        return rest;
+      });
+    },
+    []
+  );
+
+  const handleElapsedChange = useCallback((id: string, seconds: number) => {
+    setElapsedTimes((prev) => {
+      if (prev[id] === seconds) {
+        return prev;
+      }
+      return { ...prev, [id]: seconds };
+    });
   }, []);
 
   const startTrackerTimer = useCallback(
@@ -125,6 +146,11 @@ function Dashboard() {
     });
   }, []);
 
+  const getElapsedSeconds = useCallback(
+    (id: string) => elapsedTimes[id] ?? 0,
+    [elapsedTimes]
+  );
+
   const activeTrackers = useMemo(() => {
     const typedTrackers = (trackers ?? []) as TrackerRow[];
     return typedTrackers.filter((tracker) => !tracker.finishedAt);
@@ -136,9 +162,10 @@ function Dashboard() {
         tracker={rowData}
         registerTimer={registerTimer}
         unregisterTimer={unregisterTimer}
+        onElapsedChange={handleElapsedChange}
       />
     ),
-    [registerTimer, unregisterTimer]
+    [registerTimer, unregisterTimer, handleElapsedChange]
   );
 
   const handleDelete = async (id: string) => {
@@ -187,7 +214,7 @@ function Dashboard() {
         className="tracker-action-btn tracker-action-btn--stop"
         aria-label="Stop"
         onClick={() => stopTrackerTimer(rowData)}
-        disabled={isDeleting}
+        disabled={isDeleting || getElapsedSeconds(rowData.id) === 0}
       >
         <i className="pi pi-stop" />
       </button>
@@ -288,20 +315,32 @@ function TrackerDurationCell({
   tracker,
   registerTimer,
   unregisterTimer,
+  onElapsedChange,
 }: {
   tracker: TrackerRow;
   registerTimer: (id: string, controls: TimerControls) => void;
   unregisterTimer: (id: string) => void;
+  onElapsedChange: (id: string, seconds: number) => void;
 }) {
   const { timePassed, startTimer, stopTimer } = useTimer(
     tracker.duration ?? 0
   );
+  const elapsedRef = useRef(timePassed);
+
+  useEffect(() => {
+    elapsedRef.current = timePassed;
+  }, [timePassed]);
+
+  useEffect(() => {
+    onElapsedChange(tracker.id, timePassed);
+  }, [onElapsedChange, tracker.id, timePassed]);
 
   const controls = useMemo(
     () => ({
       start: startTimer,
       pause: stopTimer,
       stop: stopTimer,
+      getElapsed: () => elapsedRef.current,
     }),
     [startTimer, stopTimer]
   );
