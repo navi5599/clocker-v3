@@ -6,9 +6,11 @@ import {
   doc,
   getDocs,
   setDoc,
+  updateDoc,
   onSnapshot,
   query,
   where,
+  Timestamp,
 } from "firebase/firestore";
 import { db } from "../../../firebase";
 
@@ -85,6 +87,32 @@ export const firebaseApi = createApi({
       },
       invalidatesTags: ["Trackers"],
     }),
+    updateTracker: builder.mutation({
+      queryFn: async ({
+        id,
+        updates,
+      }: {
+        id: string;
+        updates: Partial<{
+          startedAt: Date | Timestamp | null;
+          finishedAt: Date | Timestamp | null;
+          duration: number;
+        }>;
+      }) => {
+        try {
+          const trackerRef = doc(collection(db, "trackers"), id);
+          await updateDoc(trackerRef, updates);
+          return { data: { id, updates } };
+        } catch (error) {
+          const errorMessage =
+            typeof error === "object" && error !== null && "message" in error
+              ? (error as { message?: string }).message
+              : String(error);
+          return { error: { status: "CUSTOM_ERROR", error: errorMessage } };
+        }
+      },
+      invalidatesTags: ["Trackers"],
+    }),
   }),
 });
 
@@ -92,4 +120,5 @@ export const {
   useGetTrackersQuery,
   useCreateTrackerMutation,
   useDeleteTrackerMutation,
+  useUpdateTrackerMutation,
 } = firebaseApi;

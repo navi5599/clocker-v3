@@ -29,6 +29,10 @@ function Header() {
       </div>
       {user && (
         <div className="links">
+          <span className="user-email" title={user.email ?? ""}>
+            <i className="pi pi-user"></i>
+            {user.email ?? "Unknown user"}
+          </span>
           <Link to="/">
             <div className="link">
               <i className="pi pi-clock"></i>

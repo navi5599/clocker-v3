@@ -8,6 +8,7 @@ import { selectUser } from "../../store/slices/authSlice";
 import {
   useDeleteTrackerMutation,
   useGetTrackersQuery,
+  useUpdateTrackerMutation,
 } from "../../store/api/firebaseApi";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
@@ -39,7 +40,9 @@ function Dashboard() {
     error: trackersError,
   } = useGetTrackersQuery({ skip: !user });
   const [deleteTracker, { isLoading: isDeleting }] = useDeleteTrackerMutation();
+  const [updateTracker] = useUpdateTrackerMutation();
   const timerRegistry = useRef<Record<string, TimerControls>>({});
+  const startTimesRef = useRef<Record<string, Timestamp | null>>({});
 
   const registerTimer = useCallback((id: string, controls: TimerControls) => {
     timerRegistry.current[id] = controls;
@@ -47,19 +50,74 @@ function Dashboard() {
 
   const unregisterTimer = useCallback((id: string) => {
     delete timerRegistry.current[id];
+    delete startTimesRef.current[id];
   }, []);
 
-  const startTrackerTimer = useCallback((id: string) => {
-    timerRegistry.current[id]?.start();
-  }, []);
+  const startTrackerTimer = useCallback(
+    async (tracker: TrackerRow) => {
+      try {
+        let startTimestamp = tracker.startedAt ?? null;
+
+        if (!startTimestamp) {
+          startTimestamp = Timestamp.now();
+          await updateTracker({
+            id: tracker.id,
+            updates: { startedAt: startTimestamp },
+          }).unwrap();
+        }
+
+        startTimesRef.current[tracker.id] = startTimestamp;
+        timerRegistry.current[tracker.id]?.start();
+      } catch (_error) {
+        toast.current?.show({
+          severity: "error",
+          summary: "Unable to start",
+          detail: "Please try again",
+          life: 3000,
+        });
+      }
+    },
+    [updateTracker]
+  );
 
   const pauseTrackerTimer = useCallback((id: string) => {
     timerRegistry.current[id]?.pause();
   }, []);
 
-  const stopTrackerTimer = useCallback((id: string) => {
-    timerRegistry.current[id]?.stop();
-  }, []);
+  const stopTrackerTimer = useCallback(
+    async (tracker: TrackerRow) => {
+      timerRegistry.current[tracker.id]?.stop();
+      try {
+        const finishedAt = Timestamp.now();
+        const startedAtTimestamp = startTimesRef.current[tracker.id] ?? tracker.startedAt ?? null;
+
+        let durationSeconds = tracker.duration ?? 0;
+        if (startedAtTimestamp) {
+          const startDate = startedAtTimestamp.toDate();
+          const finishDate = finishedAt.toDate();
+          durationSeconds = Math.max(
+            0,
+            Math.floor((finishDate.getTime() - startDate.getTime()) / 1000)
+          );
+        }
+
+        await updateTracker({
+          id: tracker.id,
+          updates: { finishedAt, duration: durationSeconds },
+        }).unwrap();
+        delete startTimesRef.current[tracker.id];
+      } catch (_error) {
+        toast.current?.show({
+          severity: "error",
+          summary: "Unable to stop",
+          detail: "Please try again",
+          life: 3000,
+        });
+        timerRegistry.current[tracker.id]?.start();
+      }
+    },
+    [updateTracker]
+  );
 
   const stopAllTrackers = useCallback(() => {
     Object.values(timerRegistry.current).forEach((controls) => {
@@ -86,7 +144,7 @@ function Dashboard() {
   const handleDelete = async (id: string) => {
     try {
       await deleteTracker({ id }).unwrap();
-      stopTrackerTimer(id);
+      timerRegistry.current[id]?.stop();
       unregisterTimer(id);
       toast.current?.show({
         severity: "success",
@@ -110,7 +168,7 @@ function Dashboard() {
         type="button"
         className="tracker-action-btn tracker-action-btn--play"
         aria-label="Play"
-        onClick={() => startTrackerTimer(rowData.id)}
+        onClick={() => startTrackerTimer(rowData)}
         disabled={isDeleting}
       >
         <i className="pi pi-play" />
@@ -128,7 +186,7 @@ function Dashboard() {
         type="button"
         className="tracker-action-btn tracker-action-btn--stop"
         aria-label="Stop"
-        onClick={() => stopTrackerTimer(rowData.id)}
+        onClick={() => stopTrackerTimer(rowData)}
         disabled={isDeleting}
       >
         <i className="pi pi-stop" />

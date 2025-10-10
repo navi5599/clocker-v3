@@ -60,7 +60,8 @@
   justify-content: space-between;
   padding-right: 79px;
   align-items: center;
-  width: 28%;
+  gap: 28px;
+  width: auto;
   /* 113.333% */
 }
 
@@ -76,4 +77,19 @@
 a {
   text-decoration: none;
   color: inherit;
+}
+
+.user-email {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
+  max-width: 220px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.user-email i {
+  margin: 0;
 }
