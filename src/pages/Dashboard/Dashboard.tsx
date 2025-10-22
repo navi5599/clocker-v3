@@ -43,27 +43,35 @@ function Dashboard() {
   const [deleteTracker, { isLoading: isDeleting }] = useDeleteTrackerMutation();
   const [updateTracker] = useUpdateTrackerMutation();
   const [elapsedTimes, setElapsedTimes] = useState<Record<string, number>>({});
+  const runningTrackerIdsRef = useRef<Set<string>>(new Set());
+  const hasRunningRef = useRef(false);
+  const [hasRunningTrackers, setHasRunningTrackers] = useState(false);
   const timerRegistry = useRef<Record<string, TimerControls>>({});
   const startTimesRef = useRef<Record<string, Timestamp | null>>({});
+  console.log("has running trackers:", hasRunningTrackers);
 
   const registerTimer = useCallback((id: string, controls: TimerControls) => {
     timerRegistry.current[id] = controls;
   }, []);
 
-  const unregisterTimer = useCallback(
-    (id: string) => {
-      delete timerRegistry.current[id];
-      delete startTimesRef.current[id];
-      setElapsedTimes((prev) => {
-        if (!(id in prev)) {
-          return prev;
-        }
-        const { [id]: _removed, ...rest } = prev;
-        return rest;
-      });
-    },
-    []
-  );
+  const unregisterTimer = useCallback((id: string) => {
+    delete timerRegistry.current[id];
+    delete startTimesRef.current[id];
+    if (
+      runningTrackerIdsRef.current.delete(id) &&
+      runningTrackerIdsRef.current.size === 0
+    ) {
+      hasRunningRef.current = false;
+      setHasRunningTrackers(false);
+    }
+    setElapsedTimes((prev) => {
+      if (!(id in prev)) {
+        return prev;
+      }
+      const { [id]: _removed, ...rest } = prev;
+      return rest;
+    });
+  }, []);
 
   const handleElapsedChange = useCallback((id: string, seconds: number) => {
     setElapsedTimes((prev) => {
@@ -72,6 +80,30 @@ function Dashboard() {
       }
       return { ...prev, [id]: seconds };
     });
+  }, []);
+
+  const handleRunningChange = useCallback((id: string, isRunning: boolean) => {
+    const runningIds = runningTrackerIdsRef.current;
+
+    if (isRunning) {
+      if (!runningIds.has(id)) {
+        runningIds.add(id);
+        if (!hasRunningRef.current) {
+          hasRunningRef.current = true;
+          setHasRunningTrackers(true);
+        }
+      }
+      return;
+    }
+
+    if (
+      runningIds.delete(id) &&
+      runningIds.size === 0 &&
+      hasRunningRef.current
+    ) {
+      hasRunningRef.current = false;
+      setHasRunningTrackers(false);
+    }
   }, []);
 
   const startTrackerTimer = useCallback(
@@ -110,7 +142,8 @@ function Dashboard() {
       timerRegistry.current[tracker.id]?.stop();
       try {
         const finishedAt = Timestamp.now();
-        const startedAtTimestamp = startTimesRef.current[tracker.id] ?? tracker.startedAt ?? null;
+        const startedAtTimestamp =
+          startTimesRef.current[tracker.id] ?? tracker.startedAt ?? null;
 
         let durationSeconds = tracker.duration ?? 0;
         if (startedAtTimestamp) {
@@ -144,6 +177,13 @@ function Dashboard() {
     Object.values(timerRegistry.current).forEach((controls) => {
       controls.stop();
     });
+    if (runningTrackerIdsRef.current.size > 0) {
+      runningTrackerIdsRef.current.clear();
+      if (hasRunningRef.current) {
+        hasRunningRef.current = false;
+        setHasRunningTrackers(false);
+      }
+    }
   }, []);
 
   const getElapsedSeconds = useCallback(
@@ -163,9 +203,10 @@ function Dashboard() {
         registerTimer={registerTimer}
         unregisterTimer={unregisterTimer}
         onElapsedChange={handleElapsedChange}
+        onRunningChange={handleRunningChange}
       />
     ),
-    [registerTimer, unregisterTimer, handleElapsedChange]
+    [registerTimer, unregisterTimer, handleElapsedChange, handleRunningChange]
   );
 
   const handleDelete = async (id: string) => {
@@ -270,7 +311,11 @@ function Dashboard() {
           <button className="start_btn" onClick={() => setVisible(true)}>
             <i className="pi pi-stopwatch"></i>Add tracker
           </button>
-          <button className="stop_btn" onClick={stopAllTrackers}>
+          <button
+            className="stop_btn"
+            onClick={stopAllTrackers}
+            disabled={!hasRunningTrackers}
+          >
             <i className="pi pi-stop-circle"></i>Stop all
           </button>
         </div>
@@ -316,13 +361,15 @@ function TrackerDurationCell({
   registerTimer,
   unregisterTimer,
   onElapsedChange,
+  onRunningChange,
 }: {
   tracker: TrackerRow;
   registerTimer: (id: string, controls: TimerControls) => void;
   unregisterTimer: (id: string) => void;
   onElapsedChange: (id: string, seconds: number) => void;
+  onRunningChange: (id: string, isRunning: boolean) => void;
 }) {
-  const { timePassed, startTimer, stopTimer } = useTimer(
+  const { timePassed, startTimer, stopTimer, isRunning } = useTimer(
     tracker.duration ?? 0
   );
   const elapsedRef = useRef(timePassed);
@@ -330,6 +377,10 @@ function TrackerDurationCell({
   useEffect(() => {
     elapsedRef.current = timePassed;
   }, [timePassed]);
+
+  useEffect(() => {
+    onRunningChange(tracker.id, isRunning);
+  }, [isRunning, onRunningChange, tracker.id]);
 
   useEffect(() => {
     onElapsedChange(tracker.id, timePassed);
@@ -353,9 +404,7 @@ function TrackerDurationCell({
     };
   }, [tracker.id, controls, registerTimer, unregisterTimer]);
 
-  return (
-    <span className="tracker-duration">{formatDuration(timePassed)}</span>
-  );
+  return <span className="tracker-duration">{formatDuration(timePassed)}</span>;
 }
 
 function formatDuration(seconds: number) {

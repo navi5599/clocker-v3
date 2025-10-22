@@ -1,4 +1,3 @@
-// src/store/api/firebaseApi.js
 import { createApi, fakeBaseQuery } from "@reduxjs/toolkit/query/react";
 import {
   collection,
@@ -7,9 +6,7 @@ import {
   getDocs,
   setDoc,
   updateDoc,
-  onSnapshot,
   query,
-  where,
   Timestamp,
 } from "firebase/firestore";
 import { db } from "../../../firebase";

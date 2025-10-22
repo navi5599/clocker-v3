@@ -92,7 +92,7 @@ function CreateTracker(props: CreateTrackerProps) {
       <Dialog
         header="Create new tracker"
         visible={visible}
-        style={{ width: "20vw", height: "25vW" }}
+        className="create_tracker_modal"
         onHide={handleModalCLose}
       >
         <FloatLabel>
